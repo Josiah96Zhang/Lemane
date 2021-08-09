@@ -186,11 +186,17 @@ python classification_sample.py --data [graphname] --lr 0.05 --dist p --param 5 
 python classification_sample.py --data [graphname] --lr 0.05 --dist g --param 0.5 --beta 1 --gamma 2
 ```
 
-**Run each command 5 times and select the one with minimum loss for each initialized distribution,** i.e., you will get 3 groups of alphas after training process, one for geometric distribution and two for Poisson distribution, since we don't know the best one at the present stage.
+**Since the training process is complex and easily to fall into a local minimum, run each command 5 times and select the one with minimum loss for each initialized distribution,** i.e., you will get 3 groups of alphas for one task (link prediction or node classification) after the training process, one for geometric distribution and two for Poisson distribution.
 
 ### Generalized Push
 
-Link prediction, 'u' for undirected graph and 'd' for directed graph:
+We suggest using frPCA for graphs with more than 10k nodes and using JacobiSVD for small graphs with less than 10k nodes.
+
+**Examples**
+
+The number of nodes in [graphname] is more than 10k.
+
+**Link prediction**, 'u' for undirected graph and 'd' for directed graph:
 
 ```
 ./gendata_u -graph [graphname] -test_ratio 0.3
@@ -198,7 +204,7 @@ Link prediction, 'u' for undirected graph and 'd' for directed graph:
 ./linkpred_u -graph [graphname] -method lemane_frpca_link
 ```
 
-Node classification, 'u' for undirected graph and 'd' for directed graph:
+**Node classification**, 'u' for undirected graph and 'd' for directed graph:
 
 ```
 ./lemane_frpca_u -graph [graphname]
