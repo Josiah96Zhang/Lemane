@@ -33,9 +33,9 @@ def load_info(dataset):
 # load graph edge
 def load_edge(dataset, n, directed, task):
     if task == "lp":
-        edgelist_path = "data/" + dataset + "/edgelist_link.txt"
+        edgelist_path = "lp_data/train_graph/" + dataset + ".txt"
     else:    
-        edgelist_path = "data/" + dataset + "/edgelist.txt"
+        edgelist_path = "data/" + dataset + ".txt"
     if not edgelist_path or not os.path.exists(edgelist_path):
         raise Exception("edgelist file does not exist!")
     t1 = time.time()
@@ -44,6 +44,7 @@ def load_edge(dataset, n, directed, task):
             G = nx.DiGraph()
         else:
             G = nx.Graph()
+        _ = f.readline()
         for line in f:
             edge = line.strip().split()
             u, v = int(edge[0]), int(edge[1])
@@ -97,7 +98,7 @@ def load_label(dataset, n):
     sup_label_path = "label/" + dataset + "_sup.txt"
     Sup_List = []
     if not sup_label_path or not os.path.exists(sup_label_path):
-        raise Exception("supervised node index file does not exist!")
+        sup_label_set(dataset, n)
     with open(sup_label_path) as f:
         for line in f:
             vec = line.strip().split()

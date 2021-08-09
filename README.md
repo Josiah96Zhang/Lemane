@@ -5,12 +5,12 @@
 - Ubuntu 18.04
 - C++ 11
 - GCC 7.5
-- Eigen
-- Boost
-- Gflags
-- Inter MKL
-- Python
-- Sklearn
+- [Eigen](https://eigen.tuxfamily.org/dox/)
+- [Boost](https://www.boost.org/)
+- [Gflags](https://github.com/gflags/gflags)
+- [Inter MKL](https://software.intel.com/content/www/cn/zh/develop/tools/oneapi/base-toolkit/download.html?operatingsystem=linux&distributions=webdownload&options=offline)
+- [Python](https://www.anaconda.com/products/individual#Downloads)
+- [Sklearn](https://scikit-learn.org/stable/install.html)
 
 ## Layout
 
@@ -49,7 +49,7 @@ bash compile.sh
 ## Algorithm
 ### Learning Process
 
-linkpred.py and classification.py are designed for small graphs, linkpred_sample.py and classification_sample.py are used for large graphs (n > 10k).
+**The trained alpha files are saved in alpha/ folder.** linkpred.py and classification.py are designed for small graphs, linkpred_sample.py and classification_sample.py are used for large graphs (n > 10k).  We also provide some suggestions to train alphas on a new graph in **Evaluation on new dataset** section.
 
 **Parameters**
 
@@ -65,9 +65,10 @@ linkpred.py and classification.py are designed for small graphs, linkpred_sample
 
 **Examples**
 
-Wikipedia, link prediction:
+Wikivote, link prediction, note that we need to split the data before training:
 
 ```
+./gendata_u -graph wikivote -test_ratio 0.3
 python linkpred.py --data wikivote --lr 0.5 --dist p --param 1 --beta 0.5 --gamma 1
 ```
 
@@ -106,7 +107,7 @@ BlogCatalog, classification:
 
 ## Experiments
 
-**Use the alpha files in alpha/ folder to reproduce the results.**
+**Use the following commands to reproduce the results.** example_link.sh for link prediction and example_class for node classification.
 
 ```
 bash example_link.sh
@@ -168,25 +169,28 @@ python labelclassification.py --graph BlogCatalog --method lemane_frpca_class
 
 ## Evaluation on new dataset
 
-If you have new dataset, three initialized distributions, i.e. Poisson distribution with t=1 and t=5, geometric distribution with a=0.5, are suggested for training alphas and evaluation on this dataset. 
+**Since the training process is complex and easily to fall into a local minimum,** if you have a new dataset, three initialized distributions, i.e. Poisson distribution with t = 1 and t = 5, geometric distribution with a = 0.5, are suggested for training alphas and evaluation. 
 
-### Link prediction:
+### Training Process
+
+We suggest using **grid search** to set hyperparameters beta and gamma from {0.01, 0.1, 0.5, 1, 2, 3}, learning rate from {0.001, 0.005, 0.01, 0.05, 0.1, 0.5} for each initialized distribution. **Run 5 times and select the one with minimum loss** under each hyperparameter setting, i.e., you will get several groups of alphas for one task (link prediction or node classification) after the training process, each group is corresponding to a certain hyperparameter setting.
+
+**Examples**
+
+Suppose the number of nodes in [graphname] is more than 10k.
+
+Suppose we use Possion distribution with t = 1 as initialized distribution, set learning rate = 0.001, beta = 1, and gamma = 0.01 for link prediction, first split the data, then train alphas on the training graph:
 
 ```
-python linkpred_sample.py --data [graphname] --lr 0.01 --dist p --param 1 --beta 1 --gamma 1
-python linkpred_sample.py --data [graphname] --lr 0.01 --dist p --param 5 --beta 0.1 --gamma 1
-python linkpred_sample.py --data [graphname] --lr 0.01 --dist g --param 0.5 --beta 0.1 --gamma 1
+./gendata_u -graph [graphname] -test_ratio 0.3
+python linkpred_sample.py --data [graphname] --lr 0.001 --dist p --param 1 --beta 1 --gamma 0.01
 ```
 
-### Node classification:
+Suppose we use geometric distribution with a = 0.5 as initialized distribution, set learning rate = 0.5, beta = 3 and gamma = 1 for node classification:
 
 ```
-python classification_sample.py --data [graphname] --lr 0.1 --dist p --param 1 --beta 1 --gamma 2
-python classification_sample.py --data [graphname] --lr 0.05 --dist p --param 5 --beta 1 --gamma 1
-python classification_sample.py --data [graphname] --lr 0.05 --dist g --param 0.5 --beta 1 --gamma 2
+python classification_sample.py --data [graphname] --lr 0.5 --dist g --param 0.5 --beta 3 --gamma 1
 ```
-
-**Since the training process is complex and easily to fall into a local minimum, run each command 5 times and select the one with minimum loss for each initialized distribution,** i.e., you will get 3 groups of alphas for one task (link prediction or node classification) after the training process, one for geometric distribution and two for Poisson distribution.
 
 ### Generalized Push
 
@@ -194,24 +198,23 @@ We suggest using frPCA for graphs with more than 10k nodes and using JacobiSVD f
 
 **Examples**
 
-The number of nodes in [graphname] is more than 10k.
+Suppose the number of nodes in [graphname] is more than 10k, and [graphname] is undirected.
 
-**Link prediction**, 'u' for undirected graph and 'd' for directed graph:
+Generate embedding, and evaluate *lemane* for link prediction (**we have split the graph before training**):
 
 ```
-./gendata_u -graph [graphname] -test_ratio 0.3
 ./lemane_frpca_u -graph [graphname] -graph_path lp_data/train_graph/ -task link
 ./linkpred_u -graph [graphname] -method lemane_frpca_link
 ```
 
-**Node classification**, 'u' for undirected graph and 'd' for directed graph:
+Generate embedding, and evaluate lemane for node classification:
 
 ```
 ./lemane_frpca_u -graph [graphname]
 python labelclassification.py --graph [graphname] --method lemane_frpca_class
 ```
 
-**Run each part 3 times for 3 different alphas (one for each distribution) and report the best result.**
+For each task, **generate embeddings with different alphas trained under different settings and report the best result.**
 
 ## Citation
 
