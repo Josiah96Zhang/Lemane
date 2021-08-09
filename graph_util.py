@@ -1,8 +1,3 @@
-#############################################
-# File Name: graph_util.py                  #
-# Created Time: 7 Jan 2021 :: PM +08        #
-#############################################
-
 import random
 import svd
 import numpy as np
@@ -18,7 +13,7 @@ import torch.nn.functional as F
 from sklearn.preprocessing import MultiLabelBinarizer
 
 # load graph information
-def load_info(dataset):     
+def load_info(dataset):
     attr_path = "data/" + dataset + "/attr.txt"
     if not attr_path or not os.path.exists(attr_path):
         raise Exception("graph attr file does not exist!")
@@ -34,7 +29,7 @@ def load_info(dataset):
 def load_edge(dataset, n, directed, task):
     if task == "lp":
         edgelist_path = "lp_data/train_graph/" + dataset + ".txt"
-    else:    
+    else:
         edgelist_path = "data/" + dataset + ".txt"
     if not edgelist_path or not os.path.exists(edgelist_path):
         raise Exception("edgelist file does not exist!")
@@ -64,7 +59,7 @@ def load_edge(dataset, n, directed, task):
 def show_info(G):
     print('Num of nodes: %d, num of edges: %d, Avg degree: %f, Directed:%s' % (G.number_of_nodes(), G.number_of_edges(), G.number_of_edges()*2./G.number_of_nodes(), str(nx.is_directed(G))))
     return G.number_of_edges()
-    
+
 # sample 5% labeled nodes as the supervised information for classification
 def sup_label_set(dataset,n):
     label_path = "label/" + dataset + ".txt"
@@ -85,7 +80,7 @@ def sup_label_set(dataset,n):
         for i in index_list:
             sup_list.append(labeled_list[i])
         sup_list.sort()
-    else:    
+    else:
         sup_list = random.sample(list(range(n)), int(0.05 * n))
         sup_list.sort()
     fout = open(sup_label_path, "w")
@@ -119,7 +114,7 @@ def load_label(dataset, n):
                     Node_Label[i] = vec[1:]
                     for j in range(len(Node_Label[i])):
                         Node_Label[i][j] = int(Node_Label[i][j]) + 1
-    else: 
+    else:
         with open(label_path) as f:
             for line in f:
                 vec = line.strip().split()
@@ -128,7 +123,7 @@ def load_label(dataset, n):
                     Node_Label[i] = vec[1:]
                     for j in range(len(Node_Label[i])):
                         Node_Label[i][j] = int(Node_Label[i][j])
-    f.close()   
+    f.close()
     return Node_Label
 
 # get label list of the sampled subgraph
@@ -159,7 +154,7 @@ def get_trans_prob_mat(adj, sample_list, sample_size, task):
     row_sum = np.array(sample_adj.sum(1))
     row_sum[row_sum < 1] = 1
     degree = np.array(sample_adj.sum(1)).flatten()
-    prob = sp.coo_matrix(sample_adj / row_sum).astype(np.float32) 
+    prob = sp.coo_matrix(sample_adj / row_sum).astype(np.float32)
     indices = torch.from_numpy(np.vstack((prob.row, prob.col)).astype(np.int64))
     values = torch.from_numpy(prob.data)
     shape = torch.Size(prob.shape)
@@ -188,7 +183,7 @@ def get_graph_laplacian(adj):
     Lapgraph = (degree - adj).tocoo().astype(np.float32)
     indices_g = torch.from_numpy(np.vstack((Lapgraph.row, Lapgraph.col)).astype(np.int64))
     values_g = torch.from_numpy(Lapgraph.data)
-    shape_g = torch.Size(Lapgraph.shape)    
+    shape_g = torch.Size(Lapgraph.shape)
     return torch.sparse.FloatTensor(indices_g, values_g, shape_g)
 
 # get sampling laplacian matrix and negative-sampling laplacian matrix
@@ -199,7 +194,7 @@ def get_sample_laplacian(adj, sample, n):
     indices_neg = torch.from_numpy(np.vstack((Lapneg.row, Lapneg.col)).astype(np.int64))
     values_neg = torch.from_numpy(Lapneg.data)
     shape_neg = torch.Size(Lapneg.shape)
-    
+
     adj = sp.coo_matrix(adj)
     sample_row = sorted(np.random.choice(len(adj.row), int(np.floor(sample * n)), replace=False))
     adj.row = adj.row[sample_row]
@@ -210,7 +205,7 @@ def get_sample_laplacian(adj, sample, n):
     indices_pos = torch.from_numpy(np.vstack((Lappos.row, Lappos.col)).astype(np.int64))
     values_pos = torch.from_numpy(Lappos.data)
     shape_pos = torch.Size(Lappos.shape)
-    
+
     Lapneg = torch.sparse.FloatTensor(indices_neg, values_neg, shape_neg)
     Lappos = torch.sparse.FloatTensor(indices_pos, values_pos, shape_pos)
     return Lappos, Lapneg
@@ -220,11 +215,11 @@ def get_sample_neg_laplacian(sample, num_sample):
     adj_neg = sp.random(num_sample, num_sample, density=sample/num_sample, data_rvs=np.ones)
     deg_neg = sp.diags(np.array(adj_neg.sum(1)).flatten())
     Lapneg = (deg_neg - adj_neg).tocoo().astype(np.float32)
-    
+
     indices_neg = torch.from_numpy(np.vstack((Lapneg.row, Lapneg.col)).astype(np.int64))
     values_neg = torch.from_numpy(Lapneg.data)
     shape_neg = torch.Size(Lapneg.shape)
-    
+
     return torch.sparse.FloatTensor(indices_neg, values_neg, shape_neg)
 
 # sample a subgraph with "max_sample" nodes via bfs
@@ -254,10 +249,10 @@ class ComputeProximity4SVD(nn.Module):
         self.fcs = nn.ModuleList()
         self.fcs.append(nn.Linear(256, nclass))
         torch.nn.init.xavier_uniform_(self.fcs[0].weight)
-    
+
     # compute the teleport probabilities of the random walks generated from Poisson distribution
     def poisson_dist(self, t):
-        K = 100 
+        K = 100
         poisson = [0]*(K+1)
         poissonsum = [0]*(K+2)
         stay = torch.FloatTensor(self.niter+1)
@@ -267,11 +262,11 @@ class ComputeProximity4SVD(nn.Module):
         for i in range(1, K+1):
             poisson[i] = poisson[i-1] * t * 1.0 / i
             poissonsum[i+1] = poissonsum[i] + poisson[i]
-        
+
         for i in range(self.niter+1):
-            stay[i] = poisson[i]/(1.0 - poissonsum[i]) 
+            stay[i] = poisson[i]/(1.0 - poissonsum[i])
         return stay
-    
+
     # teleport probabilities initialization
     def init_params(self, dist, param):
         if dist == 'p':
@@ -282,20 +277,20 @@ class ComputeProximity4SVD(nn.Module):
         #self.params1.data = self.poisson_dist(1)
         #self.params1.data = torch.ones(self.niter + 1) * 0.2
 
-    # forward propagation process   
+    # forward propagation process
     def forward(self, prob, identity, threshold, task):
         hi = identity
         prx_mat = hi * self.params1[0]
         for i in range(self.niter):
             hi = (prob @ hi) * (1 - self.params1[i])
-            prx_mat = prx_mat + hi * self.params1[i+1]     
+            prx_mat = prx_mat + hi * self.params1[i+1]
         prx_mat = prx_mat / threshold
         prx_mat[prx_mat < 1] = 1.
         prx_mat_log = prx_mat.log()
         if task == 'lp':
-            U, V = svd.simple_randomized_torch_svd(prx_mat_log, 128, task) 
+            U, V = svd.simple_randomized_torch_svd(prx_mat_log, 128, task)
             return U, V
         if task == 'cl':
             embds_svd = svd.simple_randomized_torch_svd(prx_mat_log, 128, task)
-            embds = self.fcs[0](embds_svd)    
+            embds = self.fcs[0](embds_svd)
             return embds
