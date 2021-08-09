@@ -200,7 +200,7 @@ We suggest using frPCA for graphs with more than 10k nodes and using JacobiSVD f
 
 Suppose the number of nodes in [graphname] is more than 10k, and [graphname] is undirected.
 
-Generate embedding, and evaluate *lemane* for link prediction (**we have split the graph before training**):
+Generate embedding, and evaluate *lemane* for link prediction:
 
 ```
 ./lemane_frpca_u -graph [graphname] -graph_path lp_data/train_graph/ -task link
@@ -214,7 +214,7 @@ Generate embedding, and evaluate lemane for node classification:
 python labelclassification.py --graph [graphname] --method lemane_frpca_class
 ```
 
-For each task, **generate embeddings with different alphas trained under different settings and report the best result.**
+**For each task, generate embeddings with different alphas trained under different settings and report the best result.**
 
 ## Citation
 
