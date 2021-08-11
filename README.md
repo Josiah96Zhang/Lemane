@@ -68,7 +68,7 @@ bash compile.sh
 Wikivote, link prediction, note that we need to split the data before training:
 
 ```
-./gendata_u -graph wikivote -test_ratio 0.3
+./gendata_d -graph wikivote -test_ratio 0.3
 python linkpred.py --data wikivote --lr 0.5 --dist p --param 1 --beta 0.5 --gamma 1
 ```
 
@@ -177,7 +177,7 @@ We suggest using **grid search** to set hyperparameters beta and gamma from {0.0
 
 **Examples**
 
-Suppose the number of nodes in [graphname] is more than 10k.
+Suppose the number of nodes in [graphname] is more than 10k, and [graphname] is undirected.
 
 Suppose we use Possion distribution with t = 1 as initialized distribution, set learning rate = 0.001, beta = 1, and gamma = 0.01 for link prediction, first split the data, then train alphas on the training graph:
 
