@@ -144,7 +144,7 @@ Then get embeddings of the training set.
 The code to calculate link prediction precision:
 
  ```
- ./link_pre_u -graph BlogCatalog -method lemane_frpca_link
+ ./linkpre_u -graph BlogCatalog -method lemane_frpca_link
  ```
 
 ### Node Classification
