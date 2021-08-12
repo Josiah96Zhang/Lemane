@@ -1,3 +1,12 @@
+mkdir lp_data
+cd lp_data
+mkdir train_graph
+mkdir test
+cd test
+mkdir positive
+mkdir negative
+cd ../../
+
 cd frPCA
 mv * ../
 cd ..

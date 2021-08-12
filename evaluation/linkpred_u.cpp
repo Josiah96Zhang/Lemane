@@ -39,9 +39,8 @@ bool maxScoreCmp(const pair<double, pair<int, int>>& a, const pair<double, pair<
 
 int main(int argc,  char **argv){
     srand((unsigned)time(0));
-    char *endptr;
-    string queryname = argv[1];
-    string methodname = argv[2];
+    google::ParseCommandLineFlags(&argc, &argv, true);
+    
     string ptestdataset =  "lp_data/test/positive/" + FLAGS_graph + ".txt";
     string ntestdataset = "lp_data/test/negative/" + FLAGS_graph + ".txt";
     string inUfileU = "embds/" + FLAGS_graph + "/" + FLAGS_graph + "_" + FLAGS_method + "_U.csv";
