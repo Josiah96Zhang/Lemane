@@ -68,19 +68,19 @@ optimizer = torch.optim.SGD([{'params':model.params1,'weight_decay':args.wdecay1
 def train():
     length_flag = True
     model.train()
-    optimizer.zero_grad() 
-    output = model(prob, identity, threshold, task)    
+    optimizer.zero_grad()
+    output = model(prob, identity, threshold, task)
     output_prob = F.log_softmax(output, dim=1)
     output_0 = output[Label_list[0]]
-    neg_loss = torch.trace(torch.transpose(output, 0, 1) @ (Lap_neg @ output)) 
-    
+    neg_loss = torch.trace(torch.transpose(output, 0, 1) @ (Lap_neg @ output))
+
     class_loss_fn1 = torch.trace(torch.transpose(output_0, 0, 1) @ (Lap_label[0] @ output_0))
     for i in range(1, len(Label_list)):
         output_i = output[Label_list[i]]
         class_loss_fn1 = class_loss_fn1 + torch.trace(torch.transpose(output_i, 0, 1) @ (Lap_label[i] @ output_i))
-    class_loss_fn1 = class_loss_fn1  / neg_loss #(neg_loss * len(Label_list))
-    class_loss_fn2 = - torch.mul(output_prob, node_Label.to(device)).sum() #/ n
-    
+    class_loss_fn1 = class_loss_fn1  / (neg_loss * len(Label_list))
+    class_loss_fn2 = - torch.mul(output_prob, node_Label.to(device)).sum() / n
+
     loss_fn = class_loss_fn1 * args.beta + class_loss_fn2 * args.gamma
     loss_fn.backward()
 
@@ -119,12 +119,12 @@ for epoch in range(args.nepoch):
         print('Epoch:{:03d}'.format(epoch+1),'train_loss:{:.5f}'.format(loss_train)) #'time_spent:{:.5f}s'.format(time.time() - begin_time)
     if bad_count == args.patience:
         break
-    
+
     np.random.seed(int(time.time()))
     _, Lap_neg = gutil.get_sample_laplacian(adj, args.sample, n)
     Lap_neg = Lap_neg.to(device)
 
-print("----------------------------------------------------------------")     
+print("----------------------------------------------------------------")
 print("Training time cost: {:.4f}s".format(time.time() - train_begin))
 print("Best epoch:{}th".format(best_epoch))
 print("Best distribution: {}".format(best_dist[-1]))
