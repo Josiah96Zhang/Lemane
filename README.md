@@ -109,7 +109,7 @@ python classification.py --data BlogCatalog --dist p --param 5 --beta 3 --gamma 
 
 ### Generalized Push
 
-We provide two versions of Randomized SVD to generate embeddings, i.e., frPCA (filename: lemane_frpca_u.cpp, lemane_frpca_d.cpp) and JacobiSVD (filename: lemane_svd_u.cpp, lemane_svd_d.cpp), 'u' for undirected graphs, 'd' for directed graphs. See **example_link.sh** and **example_class.sh** for more details. 
+We provide two versions of Randomized SVD to generate embeddings, i.e., [frPCA](https://github.com/XuFengthucs/frPCA_sparse) (filename: lemane_frpca_u.cpp, lemane_frpca_d.cpp) and [JacobiSVD](https://github.com/yinyuan1227/STRAP-git) (filename: lemane_svd_u.cpp, lemane_svd_d.cpp), 'u' for undirected graphs, 'd' for directed graphs. See **example_link.sh** and **example_class.sh** for more details. 
 
 **Parameters**
 
@@ -124,14 +124,14 @@ We provide two versions of Randomized SVD to generate embeddings, i.e., frPCA (f
 
 **Examples**
 
-Wikivote, link prediction:
+Wikipedia, link prediction:
 ```
-./lemane_frpca_d -graph wikivote -graph_path lp_data/train_graph/ -task link -delta 0.000001
+./lemane_svd_d -graph wikipedia -graph_path lp_data/train_graph/ -task link -delta 0.00001
 ```
 
 BlogCatalog, classification:
 ```
-./lemane_svd_u -graph BlogCatalog
+./lemane_frpca_u -graph BlogCatalog
 ```
 
 ## Experiments
@@ -155,7 +155,7 @@ First, split the graph into training/testing set and generate negative samples. 
 
 **Examples**
 
-Splitting graph.
+Splitting graph. For link prediction task, you should split the graph before the training process.
 
 ```
 ./gendata_u -graph BlogCatalog
@@ -190,17 +190,17 @@ Generate the embeddings of full graph.
 ./lemane_svd_u -graph BlogCatalog 
 ```
 
-Train a classifier using the embeddings of full graph, the provided labels and the training set. The performance is evaluated in terms of average Micro-F1 of 5 runs.
+Train a classifier(one vs all logistic regression) using the embeddings of full graph and the provided labels. The performance is evaluated in terms of Micro-F1 metric.
 
 ```
 python labelclassification.py --graph BlogCatalog --method lemane_frpca_class
 ```
 
-## Evaluation on new dataset
+## Training and evaluation on new dataset
 
 **Since the training process is complex and easily to fall into a local minimum,** if you have a new dataset, three initialized distributions, i.e. Poisson distribution with t = 1 and t = 5, geometric distribution with a = 0.5, are suggested for training alphas and evaluation. 
 
-**If you have any questions on hyperparameter settings and training process, feel free to contact us <zxy96cuhk@gmail.com> and we are willing to provide more suggestions or help to train our model on new datasets.**
+**If you have any questions on hyperparameter settings and training process, feel free to contact us <zxy96cuhk@gmail.com> and we are willing to provide suggestions or help to train our model on new datasets.**
 
 ### Training Process
 
