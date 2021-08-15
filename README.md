@@ -1,5 +1,10 @@
 # Learning Based Proximity Matrix Factorization for Node Embedding
 
+## Update
+
+- There were some implementation issues in our evaluation code for node classification and we have fixed them. 
+- We observe some significant improvement on Orkut dataset when normalization is applied. Thus, we take normalization for the embedding vectors on all datasets.
+
 ## Tested Environment
 
 - Ubuntu 18.04
@@ -9,8 +14,11 @@
 - [Boost](https://www.boost.org/)
 - [Gflags](https://github.com/gflags/gflags)
 - [Inter MKL](https://software.intel.com/content/www/cn/zh/develop/tools/oneapi/base-toolkit/download.html?operatingsystem=linux&distributions=webdownload&options=offline)
-- [Python](https://www.anaconda.com/products/individual#Downloads)
-- [Sklearn](https://scikit-learn.org/stable/install.html)
+- [Python 3.8.3](https://www.anaconda.com/products/individual#Downloads)
+- [Sklearn 0.23.1](https://scikit-learn.org/stable/install.html)
+- [Numpy 1.18.5](https://numpy.org/install/)
+- [Pytorch 1.7.1](https://pytorch.org/get-started/locally/#linux-installation)
+- [Networkx 2.4](https://networkx.org/)
 
 ## Layout
 
@@ -54,14 +62,35 @@ bash compile.sh
 **Parameters**
 
 - nepoch: number of training epochs, default = 50
+
 - lr: learning rate
+
 - nhop: maximum steps for random walks, default = 15
+
 - sample: number of negative samples per node, default = 10
+
 - data: dateset name
+
 - dist: initialization distribution for alphas, p for Possion and g for geometric, default = 'p'
+
 - param: initialization parameter, e.g., 1 for Possion and 0.5 for geometric distribution, default = 5
+
 - beta: hyperparameter in loss function
+
 - gamma: hyperparameter in loss function
+
+  | task                | dataset     | dist | param | beta | gamma |  lr   | delta for push | svd for push |
+  | :------------------ | ----------- | :--: | :---: | :--: | :---: | :---: | :------------: | :----------: |
+  | link prediction     | Wikipedia   |  p   |   5   | 0.01 |   1   | 0.001 |      1e-5      |  JacobiSVD   |
+  | link prediction     | Wikivote    |  p   |   1   | 0.5  |   1   |  0.5  |      1e-6      |    frPCA     |
+  | link prediction     | BlogCatalog |  g   |  0.5  | 0.01 |   1   |  0.1  |      1e-7      |    frPCA     |
+  | link prediction     | Slashdot    |  p   |   5   | 0.1  |   1   | 0.001 |      1e-5      |    frPCA     |
+  | link prediction     | Tweibo      |  g   |  0.5  | 0.1  |   1   | 0.01  |      1e-5      |    frPCA     |
+  | link prediction     | Orkut       |  p   |   1   |  1   |   1   | 0.01  |      1e-4      |    frPCA     |
+  | node classification | BlogCatalog |  p   |   5   |  3   |   1   |  0.5  |      1e-5      |    frPCA     |
+  | node classification | Wikipedia   |  p   |   5   | 0.5  |   1   |  0.5  |      1e-5      |  JacobiSVD   |
+  | node classification | Tweibo      |  p   |   1   |  1   |   2   | 0.01  |      1e-5      |    frPCA     |
+  | node classification | Orkut       |  p   |   1   |  1   |   2   |  0.5  |      1e-4      |    frPCA     |
 
 **Examples**
 
@@ -72,10 +101,10 @@ Wikivote, link prediction, note that we need to split the data before training:
 python linkpred.py --data wikivote --lr 0.5 --dist p --param 1 --beta 0.5 --gamma 1
 ```
 
-Tweibo, classification:
+BlogCatalog, classification:
 
 ```
-python classification_sample.py --data tweibo --lr 0.005 --beta 1 --gamma 3
+python classification.py --data BlogCatalog --dist p --param 5 --beta 3 --gamma 1 --lr 0.5
 ```
 
 ### Generalized Push
@@ -171,9 +200,11 @@ python labelclassification.py --graph BlogCatalog --method lemane_frpca_class
 
 **Since the training process is complex and easily to fall into a local minimum,** if you have a new dataset, three initialized distributions, i.e. Poisson distribution with t = 1 and t = 5, geometric distribution with a = 0.5, are suggested for training alphas and evaluation. 
 
+**If you have any questions on hyperparameter settings and training process, feel free to contact us <zxy96cuhk@gmail.com> and we are willing to provide more suggestions or help to train our model on new datasets.**
+
 ### Training Process
 
-We suggest using **grid search** to set hyperparameters beta and gamma from {0.01, 0.1, 0.5, 1, 2, 3}, learning rate from {0.001, 0.005, 0.01, 0.05, 0.1, 0.5} for each initialized distribution. **Run 5 times and select the one with minimum loss** under each hyperparameter setting, i.e., you will get several groups of alphas for one task (link prediction or node classification) after the training process, each group is corresponding to a certain hyperparameter setting.
+We suggest using **grid search** to set hyperparameters beta and gamma from {0.01, 0.1, 0.5, 1, 2, 3}, learning rate from {0.001, 0.005, 0.01, 0.05, 0.1, 0.5} for each initialized distribution. **Run at least 5 times and select the one with the minimum loss** under each hyperparameter setting, i.e., you will get several groups of alphas for one task (link prediction or node classification) after the training process, each group is corresponding to a certain hyperparameter setting.
 
 **Examples**
 
@@ -194,11 +225,11 @@ python classification_sample.py --data [graphname] --lr 0.5 --dist g --param 0.5
 
 ### Generalized Push
 
-We suggest using frPCA for graphs with more than 10k nodes and using JacobiSVD for small graphs with less than 10k nodes.
+We suggest using frPCA for social networks. For other types, using frPCA for graphs with more than 10k nodes and using JacobiSVD for small graphs with less than 10k nodes.
 
 **Examples**
 
-Suppose the number of nodes in [graphname] is more than 10k, and [graphname] is undirected.
+Suppose the number of nodes in a social network graph [graphname] is more than 10k, and [graphname] is undirected.
 
 Generate embedding, and evaluate *lemane* for link prediction:
 

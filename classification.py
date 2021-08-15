@@ -3,6 +3,7 @@ import torch.optim as optim
 import numpy as np
 import random
 import torch
+import os
 import sys
 import graph_util as gutil
 import time
@@ -23,13 +24,10 @@ parser.add_argument('--param', type=float, default=5, help='Initialization param
 parser.add_argument('--beta', type=float, default=1.0, help='Beta.')
 parser.add_argument('--gamma', type=float, default=1.0, help='Gamma.')
 parser.add_argument('--dev', type=int, default=0, help='device id')
+parser.add_argument('--seed', type=int, default=1628837069, help='sed')
 args = parser.parse_args()
 
-seed = int(time.time())
-random.seed(seed)
-np.random.seed(seed)
-torch.manual_seed(seed)
-torch.cuda.manual_seed(seed)
+seed = gutil.set_seed(args.seed)
 
 task = "cl"
 if args.data == 'BlogCatalog':
@@ -51,7 +49,7 @@ cudaid = "cuda:" + str(args.dev)
 device = torch.device(cudaid)
 identity = torch.eye(n).to(device)
 
-_, Lap_neg = gutil.get_sample_laplacian(adj, args.sample, n)
+Lap_neg = gutil.get_sample_neg_laplacian(args.sample, n)
 Lap_neg = Lap_neg.to(device)
 prob = gutil.get_trans_prob_mat(adj,[],0,task)
 prob = prob.to(device)
@@ -120,9 +118,6 @@ for epoch in range(args.nepoch):
     if bad_count == args.patience:
         break
 
-    np.random.seed(int(time.time()))
-    _, Lap_neg = gutil.get_sample_laplacian(adj, args.sample, n)
-    Lap_neg = Lap_neg.to(device)
 
 print("----------------------------------------------------------------")
 print("Training time cost: {:.4f}s".format(time.time() - train_begin))

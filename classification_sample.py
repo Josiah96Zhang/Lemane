@@ -25,13 +25,10 @@ parser.add_argument('--param', type=float, default=5, help='Initialization param
 parser.add_argument('--beta', type=float, default=1.0, help='Beta.')
 parser.add_argument('--gamma', type=float, default=3.0, help='Gamma.')
 parser.add_argument('--dev', type=int, default=0, help='device id')
+parser.add_argument('--seed', type=int, default=1628837069, help='sed')
 args = parser.parse_args()
 
-seed = int(time.time())
-random.seed(seed)
-np.random.seed(seed)
-torch.manual_seed(seed)
-torch.cuda.manual_seed(seed)
+seed = gutil.set_seed(args.seed)
 
 task = "cl"
 if args.data == "tweibo":
@@ -63,23 +60,23 @@ optimizer = torch.optim.SGD([{'params':model.params1,'weight_decay':args.wdecay}
 def train():
     length_flag = True
     model.train()
-    optimizer.zero_grad() 
+    optimizer.zero_grad()
     output = model(prob, identity, threshold, task)
     output_prob = F.log_softmax(output, dim=1)
     output = torch.nn.functional.normalize(output)
     output_0 = output[Label_list[0]]
-    neg_loss = torch.trace(torch.transpose(output, 0, 1) @ (Lap_neg @ output)) 
-    
+    neg_loss = torch.trace(torch.transpose(output, 0, 1) @ (Lap_neg @ output))
+
     class_loss_fn1 = torch.trace(torch.transpose(output_0, 0, 1) @ (Lap_label[0] @ output_0))
     for i in range(1, len(Label_list)):
         output_i = output[Label_list[i]]
         class_loss_fn1 = class_loss_fn1 + torch.trace(torch.transpose(output_i, 0, 1) @ (Lap_label[i] @ output_i))
     class_loss_fn1 = class_loss_fn1  / (neg_loss * len(Label_list))
     class_loss_fn2 = - torch.mul(output_prob, node_Label.to(device)).sum() / len(bfs_sample_node_list)
-    
+
     loss_fn = class_loss_fn1 * args.beta + class_loss_fn2 * args.gamma
     loss_fn.backward()
-    
+
     temp_dist = model.params1.clone().cpu().detach().numpy()
     optimizer.step()
     params_zero = model.params1.data[model.params1.data>=0]
@@ -119,13 +116,12 @@ for epoch in range(args.nepoch):
         bad_count = 0
     else:
         bad_count += 1
-    
+
     if(epoch+1)%10 == 0:
         print('Epoch:{:03d}'.format(epoch+1),'train_loss:{:.5f}'.format(loss_train),'time_spent:{:.5f}s'.format(time.time() - begin_time))
         print("----------------------------------------------------------------")
     if bad_count == args.patience:
         break
-    np.random.seed(int(time.time()))
 
 print("----------------------------------------------------------------")
 print("Training time cost: {:.4f}s".format(time.time() - train_begin))
@@ -134,4 +130,3 @@ print("Best distribution: {}".format(best_dist[-1]))
 print("----------------------------------------------------------------")
 
 np.savetxt(alphafile, best_dist[-1],fmt="%.4f",delimiter="\n")
-
