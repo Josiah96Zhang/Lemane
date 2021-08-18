@@ -42,7 +42,7 @@ void Gpush(int* random_w, int start, int end, Graph* g, vector<Triplet<double>>*
     queue<int> Q;
     int n_nodes = g->n;
     vector <double> mapSPPR(g->n);
-  
+
     for (int it = start; it < end; it++) {
         int src = random_w[it];
         mapR[src] = 1.0;
@@ -50,7 +50,7 @@ void Gpush(int* random_w, int start, int end, Graph* g, vector<Triplet<double>>*
         double gamma = 0;
         int rsize = 0;
         //push
-        while (!Q.empty()) {                     
+        while (!Q.empty()) {
             int uk = Q.front();
             int u = uk%n_nodes;
             int k = uk/n_nodes;
@@ -80,7 +80,7 @@ void Gpush(int* random_w, int start, int end, Graph* g, vector<Triplet<double>>*
             double rk = r * g->alpha[k];
             mapSPPR[u] += rk;
         }
-    
+
         for (int i = 0; i < g->n; ++i) {
             if(mapSPPR[i] > delta){
                 answer->push_back(Triplet<double>(src, i, mapSPPR[i]));
@@ -98,13 +98,13 @@ void GpushT(int* random_w, int start, int end, Graph* g, vector<Triplet<double>>
     queue<int> Q;
     int n_nodes = g->n;
     vector <double> mapSPPR(g->n);
-  
+
     for(int it = start; it < end; it++){
         int src = random_w[it];
-        mapR[src] = 1.0;                           
+        mapR[src] = 1.0;
         Q.push(src);
         //push
-        while(!Q.empty()){                     
+        while(!Q.empty()){
             int uk = Q.front();
             int u = uk%n_nodes;
             int k = uk/n_nodes;
@@ -134,7 +134,7 @@ void GpushT(int* random_w, int start, int end, Graph* g, vector<Triplet<double>>
             double rk = r * g->alpha[k];
             mapSPPR[u] += rk;
         }
-    
+
         for (int i = 0; i < g->n; ++i){
             if (mapSPPR[i] > delta) {
                 answer->push_back(Triplet<double>(i, src, mapSPPR[i]));
@@ -152,7 +152,7 @@ int main(int argc,  char **argv){
     auto start_time = std::chrono::system_clock::now();
     srand((unsigned)time(0));
     google::ParseCommandLineFlags(&argc, &argv, true);
-    
+
     string dataset = FLAGS_graph_path  + FLAGS_graph + ".txt";
     string alphafile = FLAGS_alpha_path + FLAGS_graph + "_" + FLAGS_task + ".txt";
     string outUfile = FLAGS_emb_path + FLAGS_graph + "/" + FLAGS_graph + "_lemane_svd_" + FLAGS_task + "_U.csv";
@@ -163,14 +163,14 @@ int main(int argc,  char **argv){
     Graph g;
     g.inputGraph(dataset, alphafile);
     clock_t start = clock();
-    
+
     cout << outUfile << endl;
     cout << outVfile << endl;
 
     int d = FLAGS_d;
     cout << "dimension: " << d << endl;
     cout << "reservemin: " << FLAGS_delta << " residuemax: " << FLAGS_delta << endl;
-  
+
     int* random_w = new int[g.n];
     for (int i = 0; i < g.n; i++) {
         random_w[i] = i;
@@ -182,7 +182,7 @@ int main(int argc,  char **argv){
       random_w[i + r] = random_w[i];
       random_w[i] = temp;
     }
-  
+
     cout << "SPPR computation" << endl;
     auto sppr_start_time = std::chrono::system_clock::now();
     vector<thread> threads;
@@ -193,41 +193,40 @@ int main(int argc,  char **argv){
         int end = 0;
         if (k == FLAGS_num_thread){
             end = g.n;
-        } 
+        }
         else {
             end = k*(g.n/FLAGS_num_thread);
         }
         threads.push_back(thread(Gpush, random_w, start, end, &g, &tripletList[k-1], FLAGS_delta));
     }
-    
+
     for (int k = 0; k < FLAGS_num_thread ; k++) {
         threads[k].join();
     }
     vector<thread>().swap(threads);
-  
+
     for (int k = 1; k <= FLAGS_num_thread; k++) {
         int start = (k-1)*(g.n/FLAGS_num_thread);
         int end = 0;
         if (k == FLAGS_num_thread){
             end = g.n;
-        } 
+        }
         else{
             end = k*(g.n/FLAGS_num_thread);
         }
         threads.push_back(thread(GpushT, random_w, start, end, &g, &tripletList[k-1], FLAGS_delta));
     }
-    
+
     for (int k = 0; k < FLAGS_num_thread; k++){
         threads[k].join();
     }
     vector<thread>().swap(threads);
-  
+
     delete[] random_w;
 
     auto start_sppr_matrix_time = chrono::system_clock::now();
     auto elapsed_sppr_time = chrono::duration_cast<std::chrono::seconds>(start_sppr_matrix_time - sppr_start_time);
     cout << "Computing sppr time: "<< elapsed_sppr_time.count() << endl;
-
 
     long total_size = 0;
     for (int t = 0; t < FLAGS_num_thread; t++){
@@ -241,12 +240,12 @@ int main(int argc,  char **argv){
     }
     vector<vector<Triplet<double>>>().swap(tripletList);
 
+    // https://github.com/yinyuan1227/STRAP-git
     long nnz = TotalTripletList.size();
     cout << "nnz1 + nnz2 = " << nnz << endl;
     auto merge_sppr_time = chrono::system_clock::now();
     auto elapsed_merge_sppr_time = chrono::duration_cast<std::chrono::seconds>(merge_sppr_time - start_sppr_matrix_time);
     cout << "merge sppr vec time: "<< elapsed_merge_sppr_time.count() << endl;
-
 
     //Combine bidirectional sppr vector into Eigen:Sparse
     long max_nnz = INT_MAX;
@@ -270,7 +269,7 @@ int main(int argc,  char **argv){
         if (nnz < max_step){
             step = nnz;
             nnz = 0;
-        } 
+        }
         else {
             step = max_step;
             nnz -= max_step;
@@ -295,11 +294,11 @@ int main(int argc,  char **argv){
         trMat.collapseDuplicates(internal::scalar_sum_op<double, double>());
     }
     deque<Triplet<double>>().swap(TotalTripletList);
-  
+
     sppr_matrix = trMat;
     trMat.resize(0, 0);
     trMat.data().squeeze();
-  
+
     auto svd_start_time = chrono::system_clock::now();
     auto elapsed_deque_to_sparse_time = chrono::duration_cast<std::chrono::seconds>(svd_start_time - merge_sppr_time);
     cout << "Deque to sparse time: "<< elapsed_deque_to_sparse_time.count() << endl;
