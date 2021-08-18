@@ -89,7 +89,7 @@ bash compile.sh
   | link prediction     | Orkut       |  p   |   1   |  1   |   1   | 0.01  |      1e-4      |    frPCA     |
   | node classification | BlogCatalog |  p   |   5   |  3   |   1   |  0.5  |      1e-5      |    frPCA     |
   | node classification | Wikipedia   |  p   |   5   | 0.5  |   1   |  0.5  |      1e-5      |  JacobiSVD   |
-  | node classification | Tweibo      |  p   |   1   |  1   |   3   | 0.01  |      1e-4      |    frPCA     |
+  | node classification | Tweibo      |  p   |   1   |  1   |   3   |  0.5  |      1e-4      |    frPCA     |
   | node classification | Orkut       |  p   |   1   |  1   |   2   |  0.5  |      1e-4      |    frPCA     |
 
 **Examples**
