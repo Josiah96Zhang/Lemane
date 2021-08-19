@@ -81,7 +81,7 @@ bash compile.sh
 
   | task                | dataset     | dist | param | beta | gamma |  lr   | delta for push | svd for push |
   | :------------------ | ----------- | :--: | :---: | :--: | :---: | :---: | :------------: | :----------: |
-  | link prediction     | Wikipedia   |  p   |   7   | 0.01 |   1   | 0.001 |      1e-5      |  JacobiSVD   |
+  | link prediction     | Wikipedia   |  p   |   7   | 0.01 |   1   | 0.01  |      1e-5      |  JacobiSVD   |
   | link prediction     | Wikivote    |  p   |   1   | 0.5  |   1   |  0.5  |      1e-6      |    frPCA     |
   | link prediction     | BlogCatalog |  g   |  0.5  | 0.01 |   1   |  0.1  |      1e-7      |    frPCA     |
   | link prediction     | Slashdot    |  p   |   5   | 0.1  |   1   | 0.001 |      1e-5      |    frPCA     |
