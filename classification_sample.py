@@ -19,13 +19,13 @@ parser.add_argument('--sample_flag', type=bool, default=True, help='Set true if 
 parser.add_argument('--sample_size', type=int, default=5000, help='Number of samples.')
 parser.add_argument('--sample_sup_label_set', type=bool, default=False, help='Flag for sampling supervised node set.')
 parser.add_argument('--patience', type=int, default=20, help='Patience.')
-parser.add_argument('--data', default='BlogCatalog', help='Dateset.')
+parser.add_argument('--data', default='tweibo', help='Dateset.')
 parser.add_argument('--dist', default='p', help='Initialization distribution for stopping probabilities, p for Possion adn g for geometric.')
 parser.add_argument('--param', type=float, default=5, help='Initialization parameter, 1 or 5 for Possion distribution and 0.5 for geometric distribution.')
 parser.add_argument('--beta', type=float, default=1.0, help='Beta.')
 parser.add_argument('--gamma', type=float, default=3.0, help='Gamma.')
 parser.add_argument('--dev', type=int, default=0, help='device id')
-parser.add_argument('--seed', type=int, default=1628837069, help='sed')
+parser.add_argument('--seed', type=int, default=1629459462, help='seed')
 args = parser.parse_args()
 
 seed = gutil.set_seed(args.seed)
@@ -49,7 +49,7 @@ print("----------------------------------------------------------------")
 G, adj, m = gutil.load_edge(args.data, n, directed, task)
 cudaid = "cuda:" + str(args.dev)
 device = torch.device(cudaid)
-identity = torch.eye(args.sample_size).to(device)
+identity = torch.eye(args.sample_size, dtype=torch.float64).to(device)
 
 Node_Label = gutil.load_label(args.data, n)
 
@@ -71,8 +71,14 @@ def train():
     for i in range(1, len(Label_list)):
         output_i = output[Label_list[i]]
         class_loss_fn1 = class_loss_fn1 + torch.trace(torch.transpose(output_i, 0, 1) @ (Lap_label[i] @ output_i))
-    class_loss_fn1 = class_loss_fn1  / (neg_loss * len(Label_list))
-    class_loss_fn2 = - torch.mul(output_prob, node_Label.to(device)).sum() / len(bfs_sample_node_list)
+    if args.data == "tweibo":
+        class_loss_fn1 = class_loss_fn1  / (neg_loss * len(Label_list))
+        class_loss_fn2 = - torch.mul(output_prob, node_Label.to(device)).sum() / len(bfs_sample_node_list)
+
+    #derivative of alphas on orkut is too small, or we can select larger learning rate, beta and gamma.
+    elif args.data == "orkut":
+        class_loss_fn1 = class_loss_fn1  / neg_loss
+        class_loss_fn2 = - torch.mul(output_prob, node_Label.to(device)).sum()
 
     loss_fn = class_loss_fn1 * args.beta + class_loss_fn2 * args.gamma
     loss_fn.backward()

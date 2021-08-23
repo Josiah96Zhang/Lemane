@@ -10,7 +10,7 @@ torch.autograd.set_detect_anomaly(True)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--nepoch', type=int, default=50, help='Number of epochs to train.')
-parser.add_argument('--lr', type=float, default=0.05, help='learning rate.')  
+parser.add_argument('--lr', type=float, default=0.05, help='learning rate.')
 parser.add_argument('--wdecay', type=float, default=0.05, help='weight decay (L2 loss on parameters).')
 parser.add_argument('--nhop', type=int, default=15, help='Number of hops.')
 parser.add_argument('--sample', type=int, default=10, help='Number of negative samples per node.')
@@ -30,7 +30,7 @@ np.random.seed(seed)
 torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
 
-task = 'lp'  
+task = 'lp'
 n, _, directed = gutil.load_info(args.data)
 alphafile = "alpha/" + args.data + "_link.txt"
 print("----------------------------------------------------------------")
@@ -38,7 +38,7 @@ print("----------------------------------------------------------------")
 G, adj, m = gutil.load_edge(args.data, n, directed, task)
 cudaid = "cuda:" + str(args.dev)
 device = torch.device(cudaid)
-identity = torch.eye(args.sample_size).to(device)
+identity = torch.eye(args.sample_size,dtype=torch.float64).to(device)
 
 threshold = 1e-5
 model = gutil.ComputeProximity4SVD(ngraph=args.sample_size, niter=args.nhop, dist=args.dist, param=args.param).to(device)
@@ -53,10 +53,10 @@ def train(adj):
     link_pre_loss_fn1 = F.mse_loss((pro_mat - torch.triu(pro_mat) + torch.triu(pro_mat, diagonal=1)).sum(0), degree, reduction = 'mean') / args.sample_size / args.sample_size
     output_prob = F.logsigmoid(U @ V.transpose(0, 1))
     link_pre_loss_fn2 =  - torch.mul(adj, output_prob).sum() / args.sample_size
-    
+
     loss_fn = link_pre_loss_fn1 * args.beta + args.gamma * link_pre_loss_fn2
     loss_fn.backward()
-    
+
     temp_dist = model.params1.clone().cpu().detach().numpy()
     optimizer.step()
     params_zero = model.params1.data[model.params1.data>=0]
@@ -77,13 +77,13 @@ print("----------------------------------------------------------------")
 
 for epoch in range(args.nepoch):
     begin_time = time.time()
-    
+
     bfs_sample_node_list = gutil.bfs_sampling(G, args.sample_size)
-    prob, sample_adj, degree = gutil.get_trans_prob_mat(adj, bfs_sample_node_list, args.sample_size, task)   
+    prob, sample_adj, degree = gutil.get_trans_prob_mat(adj, bfs_sample_node_list, args.sample_size, task)
     prob = prob.to(device)
-    sample_adj = torch.tensor(sample_adj.todense()).to(device)
+    sample_adj = torch.DoubleTensor(sample_adj.todense()).to(device)
     degree = degree.to(device)
-    
+
     loss_train, temp_dist, length_flag = train(sample_adj)
     if length_flag == False:
         break
@@ -94,7 +94,7 @@ for epoch in range(args.nepoch):
         bad_count = 0
     else:
         bad_count += 1
-    
+
     if(epoch+1)%10 == 0:
         print('Epoch:{:03d}'.format(epoch+1),'train_loss:{:.5f}'.format(loss_train),'time_spent:{:.5f}s'.format(time.time() - begin_time))
     if bad_count == args.patience:

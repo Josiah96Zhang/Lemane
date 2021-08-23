@@ -24,7 +24,7 @@ parser.add_argument('--param', type=float, default=5, help='Initialization param
 parser.add_argument('--beta', type=float, default=1.0, help='Beta.')
 parser.add_argument('--gamma', type=float, default=1.0, help='Gamma.')
 parser.add_argument('--dev', type=int, default=0, help='device id')
-parser.add_argument('--seed', type=int, default=1628837069, help='sed')
+parser.add_argument('--seed', type=int, default=1629459462, help='seed')
 args = parser.parse_args()
 
 seed = gutil.set_seed(args.seed)
@@ -45,9 +45,9 @@ alphafile = "alpha/" + args.data + "_class.txt"
 print("----------------------------------------------------------------")
 
 G, adj, m = gutil.load_edge(args.data, n, directed, task)
-cudaid = "cuda:" + str(args.dev)
+cudaid = "cuda:" + str(args.dev) if torch.cuda.is_available() else "cpu"
 device = torch.device(cudaid)
-identity = torch.eye(n).to(device)
+identity = torch.eye(n,dtype=torch.float64).to(device)
 
 Lap_neg = gutil.get_sample_neg_laplacian(args.sample, n)
 Lap_neg = Lap_neg.to(device)
@@ -81,6 +81,9 @@ def train():
 
     loss_fn = class_loss_fn1 * args.beta + class_loss_fn2 * args.gamma
     loss_fn.backward()
+
+    print("params: ", model.params1.data)
+    print("grad: ", model.params1.grad)
 
     temp_dist = model.params1.clone().cpu().detach().numpy()
     optimizer.step()
@@ -117,7 +120,6 @@ for epoch in range(args.nepoch):
         print('Epoch:{:03d}'.format(epoch+1),'train_loss:{:.5f}'.format(loss_train)) #'time_spent:{:.5f}s'.format(time.time() - begin_time)
     if bad_count == args.patience:
         break
-
 
 print("----------------------------------------------------------------")
 print("Training time cost: {:.4f}s".format(time.time() - train_begin))

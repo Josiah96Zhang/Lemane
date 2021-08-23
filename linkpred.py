@@ -13,8 +13,8 @@ torch.autograd.set_detect_anomaly(True)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--nepoch', type=int, default=50, help='Number of epochs to train.')
-parser.add_argument('--lr', type=float, default=0.001, help='learning rate.')  
-parser.add_argument('--beta', type=float, default=0.01, help='hyperparameter for loss fn1.') 
+parser.add_argument('--lr', type=float, default=0.001, help='learning rate.')
+parser.add_argument('--beta', type=float, default=0.01, help='hyperparameter for loss fn1.')
 parser.add_argument('--gamma', type=float, default=1, help='hyperparameter for loss fn2.')
 parser.add_argument('--wdecay1', type=float, default=0.001, help='weight decay (L2 loss on parameters 1).')
 parser.add_argument('--nhop', type=int, default=15, help='Number of hops.')
@@ -40,16 +40,15 @@ print("----------------------------------------------------------------")
 G, adj, m = gutil.load_edge(args.data, n, directed, task)
 cudaid = "cuda:" + str(args.dev)
 device = torch.device(cudaid)
-identity = torch.eye(n).to(device)
+identity = torch.eye(n, dtype=torch.float64).to(device)
 
 Lap_pos, Lap_neg = gutil.get_sample_laplacian(adj, args.sample, n)
 prob, adj, degree = gutil.get_trans_prob_mat(adj, [], 0, task)
 prob = prob.to(device)
-adj = torch.tensor(adj.todense()).to(device)
+adj = torch.DoubleTensor(adj.todense()).to(device)
 degree = degree.to(device)
 Lap_pos = Lap_pos.to(device)
 Lap_neg = Lap_neg.to(device)
-
 
 threshold = 1e-5
 model = gutil.ComputeProximity4SVD(ngraph=n, niter=args.nhop, dist=args.dist, param=args.param).to(device)
@@ -63,10 +62,9 @@ def train():
     pro_mat = U @ V.transpose(0, 1)
     link_pre_loss_fn1 = F.mse_loss(((pro_mat - torch.triu(pro_mat) + torch.triu(pro_mat, diagonal=1)).sum(0)), degree, reduction = 'mean') /n /n
     link_pre_loss_fn2 =  - torch.mul(adj, output_prob).sum() / m
-    
-    loss_fn = (args.beta * link_pre_loss_fn1 + args.gamma * link_pre_loss_fn2 ).to(device)
+
+    loss_fn = (args.beta * link_pre_loss_fn1 + args.gamma * link_pre_loss_fn2).to(device)
     loss_fn.backward()
-    
     temp_dist = model.params1.clone().cpu().detach().numpy()
     optimizer.step()
     params_zero = model.params1.data[model.params1.data>=0]
@@ -97,14 +95,14 @@ for epoch in range(args.nepoch):
         bad_count = 0
     else:
         bad_count += 1
-        
+
     if(epoch+1)%10 == 0:
-        print('Epoch:{:03d}'.format(epoch+1),'train_loss:{:.5f}'.format(loss_train)) #'time_spent:{:.5f}s'.format(time.time() - begin_time)
+        print('Epoch:{:03d}'.format(epoch+1),'train_loss:{:.5f}'.format(loss_train))
     if bad_count == args.patience:
         break
     np.random.seed(int(time.time()))
 
-print("----------------------------------------------------------------")    
+print("----------------------------------------------------------------")
 print("Training time cost: {:.4f}s".format(time.time() - train_begin))
 print("Best epoch:{}th".format(best_epoch))
 print("Best distribution: {}".format(best_dist[-1]))

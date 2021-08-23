@@ -7,7 +7,7 @@
 ./linkpred_d -graph wiki -method lemane_svd_link
 
 ./gendata_d -graph wikivote -test_ratio 0.3
-./lemane_frpca_d -graph wikivote -graph_path lp_data/train_graph/ -task link -delta 0.00001
+./lemane_frpca_d -graph wikivote -graph_path lp_data/train_graph/ -task link -delta 0.000001
 ./linkpred_d -graph wikivote -method lemane_frpca_link
 
 ./gendata_d -graph slashdot -test_ratio 0.3
