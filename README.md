@@ -4,7 +4,7 @@
 
 - We have updated our paper on [arXiv](https://arxiv.org/abs/2106.05476).
 - We observed that for Torch.FloatTensor A and B, the results computed by using command Torch.mm(A,B) are unstable on different machines. We have changed all FloatTensor to DoubleTensor, and the training process are conducted on a Linux machine with an NVIDIA RTX A6000 48G GPU.
-- There were some implementation issues in our evaluation code for node classification on directed graph and we have fixed them. 
+- There were some implementation issues in our evaluation code for node classification on directed graphs and we have fixed them. 
 - We observed some significant improvement on Orkut dataset when normalization is applied. Thus, we take normalization for the embedding vectors on all datasets.
 
 ## Tested Environment
