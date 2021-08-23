@@ -24,7 +24,7 @@ prefix: /home/user_A/anaconda3/envs
 Use the following command to **create a new conda environment**.
 
 ```
-conda env create -f new.
+conda env create -f new.yaml
 ```
 
 **Enviroment:**
