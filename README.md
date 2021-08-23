@@ -3,8 +3,8 @@
 ## Updates
 
 - We have updated our paper on [arXiv](https://arxiv.org/abs/2106.05476).
-- We observed that for Torch.FloatTensor A and B, the results computed by using command Torch.mm(A,B) are unstable. We have changed all FloatTensor to DoubleTensor. And the training process are conducted on a Linux machine with an NVIDIA RTX A6000 48G GPU.
-- There were some implementation issues in our evaluation code for node classification and we have fixed them. 
+- We observed that for Torch.FloatTensor A and B, the results computed by using command Torch.mm(A,B) are unstable on different machines. We have changed all FloatTensor to DoubleTensor, and the training process are conducted on a Linux machine with an NVIDIA RTX A6000 48G GPU.
+- There were some implementation issues in our evaluation code for node classification on directed graph and we have fixed them. 
 - We observed some significant improvement on Orkut dataset when normalization is applied. Thus, we take normalization for the embedding vectors on all datasets.
 
 ## Tested Environment
@@ -89,8 +89,8 @@ bash compile.sh
   | link prediction     | Slashdot    |  p   |   5   | 0.1  |   1   | 0.001 |      1e-5      |    frPCA     |
   | link prediction     | Tweibo      |  g   |  0.5  | 0.1  |   1   | 0.01  |      1e-5      |    frPCA     |
   | link prediction     | Orkut       |  p   |   1   |  1   |   2   | 0.01  |      1e-4      |    frPCA     |
-  | node classification | BlogCatalog |  p   |   5   |  3   |   1   |  0.5  |      1e-5      |    frPCA     |
   | node classification | Wikipedia   |  p   |   1   |  3   |   1   |  0.5  |      1e-4      |  JacobiSVD   |
+  | node classification | BlogCatalog |  p   |   5   |  3   |   1   |  0.5  |      1e-5      |    frPCA     |
   | node classification | Tweibo      |  p   |   1   |  1   |   3   |  0.5  |      1e-4      |    frPCA     |
   | node classification | Orkut       |  p   |   1   |  1   |   2   | 0.01  |      1e-4      |    frPCA     |
 
