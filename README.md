@@ -9,26 +9,6 @@
 
 ## Tested Environment
 
-Please open **new.yaml** file, and **change the prefix in the last line (line 190)**.
-
-```
-prefix: /[please set the path]/anaconda3/envs
-```
-
-**Example:**
-
-```
-prefix: /home/user_A/anaconda3/envs
-```
-
-Use the following command to **create a new conda environment**.
-
-```
-conda env create -f new.yaml
-```
-
-**Enviroment:**
-
 - Ubuntu 18.04
 - C++ 11
 - GCC 7.5
