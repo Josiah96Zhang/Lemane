@@ -128,7 +128,7 @@ We provide two versions of Randomized SVD to generate embeddings, i.e., [frPCA](
 
 Wikipedia, link prediction:
 ```
-./lemane_svd_d -graph wikipedia -graph_path lp_data/train_graph/ -task link -delta 0.00001
+./lemane_svd_d -graph wiki -graph_path lp_data/train_graph/ -task link -delta 0.00001
 ```
 
 BlogCatalog, classification:
